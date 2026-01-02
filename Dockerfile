@@ -19,8 +19,6 @@ RUN apt-get update && apt-get install -y \
     fluxbox \
     # VNC server for optional live viewing
     x11vnc \
-    # Browser
-    firefox \
     # Automation tools
     xdotool \
     # Screenshot utilities
@@ -34,10 +32,27 @@ RUN apt-get update && apt-get install -y \
     wget \
     ca-certificates \
     dbus-x11 \
+    # Firefox dependencies
+    libgtk-3-0 \
+    libdbus-glib-1-2 \
+    libxt6 \
+    libasound2 \
     # Python (for running scripts inside container if needed)
     python3 \
     python3-pip \
     # Clean up
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Firefox ESR from Mozilla PPA (snap doesn't work in Docker)
+# This works for both amd64 and arm64 architectures
+RUN apt-get update \
+    && apt-get install -y software-properties-common \
+    && add-apt-repository -y ppa:mozillateam/ppa \
+    && echo 'Package: *\nPin: release o=LP-PPA-mozillateam\nPin-Priority: 1001' > /etc/apt/preferences.d/mozilla-firefox \
+    && apt-get update \
+    && apt-get install -y firefox-esr \
+    && ln -sf /usr/bin/firefox-esr /usr/local/bin/firefox \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 

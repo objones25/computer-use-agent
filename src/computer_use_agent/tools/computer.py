@@ -108,7 +108,8 @@ class ComputerTool(BaseTool):
             elif action == "type":
                 return await self._type(kwargs.get("text", ""))
             elif action == "key":
-                return await self._key(kwargs.get("key", ""))
+                # Note: Anthropic's schema uses 'text' for both 'key' and 'type' actions
+                return await self._key(kwargs.get("text", ""))
             elif action == "mouse_move":
                 return await self._mouse_move(kwargs.get("coordinate"))
             elif action == "scroll":
@@ -124,8 +125,9 @@ class ComputerTool(BaseTool):
             elif action == "left_mouse_up":
                 return await self._mouse_button("mouseup", 1)
             elif action == "hold_key":
+                # Note: Anthropic's schema uses 'text' for hold_key action
                 return await self._hold_key(
-                    kwargs.get("key", ""),
+                    kwargs.get("text", ""),
                     kwargs.get("duration", 0.5),
                 )
             else:

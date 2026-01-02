@@ -7,7 +7,8 @@ A Python-based autonomous computer control agent using Claude's Computer Use API
 - **Claude Computer Use API**: Full desktop automation via Claude's computer use beta API (computer_20250124)
 - **Automated CAPTCHA Solving**: CapMonster Cloud integration for solving various CAPTCHA types
 - **Human-in-the-Loop**: CLI prompts for credentials, 2FA codes, and manual interventions
-- **Docker Environment**: Isolated containerized desktop with Firefox, Xvfb, and automation tools
+- **Docker Environment**: Isolated containerized desktop with Firefox ESR, Fluxbox, Xvfb, and automation tools
+- **Optimized System Prompt**: Based on Anthropic's reference implementation best practices
 - **Optional VNC**: Live viewing of the virtual desktop via VNC client
 
 ## Architecture
@@ -27,8 +28,8 @@ A Python-based autonomous computer control agent using Claude's Computer Use API
 │  ┌─────────────────────────────────────────────────────────┐│
 │  │              Docker Container                            ││
 │  │  ┌─────────┐  ┌──────────┐  ┌────────────────────────┐ ││
-│  │  │ Xvfb    │  │ Browser  │  │ VNC Server (optional)  │ ││
-│  │  │ Display │  │ (Firefox)│  │ for live viewing       │ ││
+│  │  │ Xvfb    │  │ Fluxbox  │  │ VNC Server (optional)  │ ││
+│  │  │ Display │  │ Firefox  │  │ for live viewing       │ ││
 │  │  └─────────┘  └──────────┘  └────────────────────────┘ ││
 │  └─────────────────────────────────────────────────────────┘│
 └─────────────────────────────────────────────────────────────┘
@@ -194,6 +195,16 @@ This agent uses Claude's Computer Use API with:
 - **Tool Version**: `computer_20250124`
 - **Beta Flag**: `computer-use-2025-01-24`
 
+## System Prompt
+
+The agent uses a system prompt based on [Anthropic's reference implementation](https://github.com/anthropics/anthropic-quickstarts/tree/main/computer-use-demo) best practices:
+
+- **XML-structured sections**: `<SYSTEM_CAPABILITY>`, `<IMPORTANT>`, `<CREDENTIALS>`, etc.
+- **Environment context**: Fluxbox desktop, Firefox ESR, display resolution
+- **Verification prompts**: Encourages explicit evaluation after each step
+- **Firefox wizard handling**: Instructions to ignore startup wizards
+- **Keyboard shortcut hints**: For tricky UI elements
+
 ## Troubleshooting
 
 ### Container keeps restarting
@@ -217,6 +228,20 @@ Make sure VNC is enabled:
 ```bash
 ENABLE_VNC=true docker compose up -d
 ```
+
+### Firefox not opening
+
+The container uses Firefox ESR from Mozilla's PPA (not snap, which doesn't work in Docker). If Firefox fails to start:
+```bash
+# Rebuild the container
+docker compose down
+docker compose build --no-cache
+docker compose up -d
+```
+
+### Opening applications
+
+Right-click on the desktop to open the Fluxbox menu, then navigate to Browsers → Firefox.
 
 ## License
 

@@ -311,35 +311,39 @@ class ComputerUseAgent:
         return "Task incomplete: maximum iterations reached"
 
     def _get_system_prompt(self) -> str:
-        """Get the system prompt for the agent."""
-        return f"""You are a computer use assistant that can control a desktop computer.
-You have access to a virtual desktop running in a Docker container.
+        """Get the system prompt for the agent.
 
-Display resolution: {self.config.display_width}x{self.config.display_height}
+        Based on Anthropic's reference implementation best practices.
+        """
+        from datetime import datetime
 
-When performing tasks:
-1. Always take a screenshot first to see the current state
-2. Analyze the screenshot carefully before taking actions
-3. Click precisely on UI elements you can see
-4. Wait briefly after actions for the UI to update
-5. Verify your actions worked by taking another screenshot
+        return f"""<SYSTEM_CAPABILITY>
+* You are utilizing an Ubuntu virtual machine with a {self.config.display_width}x{self.config.display_height} display running in a Docker container with internet access.
+* The desktop environment is Fluxbox. To open applications, right-click on the desktop to open the Fluxbox menu.
+* Firefox ESR is installed. To open it: right-click desktop → Browsers → Firefox.
+* When using your computer function calls, they take a while to run and send back to you. Where possible/feasible, try to chain multiple of these calls all into one function calls request.
+* When viewing a page it can be helpful to zoom out so that you can see everything on the page. Either that, or make sure you scroll down to see everything before deciding something isn't available.
+* The current date is {datetime.today().strftime("%A, %B %d, %Y")}.
+</SYSTEM_CAPABILITY>
 
-For login tasks:
-- When you need credentials (username, password), describe what you need clearly
-- The user will provide credentials when prompted
-- Never guess or make up credentials
-- For 2FA codes, wait for the user to provide them
+<IMPORTANT>
+* When using Firefox, if a startup wizard or welcome page appears, IGNORE IT. Do not click any buttons on the wizard. Instead, click directly on the address bar where it says "Search or enter address", and enter the appropriate search term or URL there.
+* After each step, take a screenshot and carefully evaluate if you have achieved the right outcome. Explicitly show your thinking: "I have evaluated step X..." If not correct, try again. Only when you confirm a step was executed correctly should you move on to the next one.
+* Some UI elements (like dropdowns and scrollbars) might be tricky to manipulate using mouse movements. If you experience issues, try using keyboard shortcuts instead.
+</IMPORTANT>
 
-For CAPTCHA challenges:
-- If you detect a CAPTCHA, describe it and request solving
-- The system will attempt to solve it automatically
-- If automatic solving fails, the user will be prompted
+<CREDENTIALS>
+* When you need credentials (username, password), describe what you need clearly and wait for the user to provide them.
+* Never guess or make up credentials.
+* For 2FA codes, wait for the user to provide them.
+</CREDENTIALS>
 
-Be careful with sensitive actions like:
-- Clicking submit/confirm buttons
-- Making purchases
-- Deleting content
-- Changing settings
+<CAPTCHA>
+* If you detect a CAPTCHA, describe it and request solving.
+* The system will attempt to solve it automatically.
+* If automatic solving fails, the user will be prompted.
+</CAPTCHA>
 
-Always explain what you're about to do before taking actions.
-After each step, verify the result with a screenshot."""
+<SENSITIVE_ACTIONS>
+Be careful with sensitive actions like clicking submit/confirm buttons, making purchases, deleting content, or changing settings. Always explain what you're about to do before taking these actions.
+</SENSITIVE_ACTIONS>"""
