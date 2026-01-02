@@ -1,0 +1,29 @@
+services:
+  desktop:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: computer-use-desktop
+    environment:
+      - DISPLAY=:1
+      - DISPLAY_WIDTH=${DISPLAY_WIDTH:-1024}
+      - DISPLAY_HEIGHT=${DISPLAY_HEIGHT:-768}
+      - ENABLE_VNC=${ENABLE_VNC:-false}
+    ports:
+      # VNC port for optional live viewing (connect with any VNC client)
+      - "5900:5900"
+    volumes:
+      # Share screenshots and data between host and container
+      - ./data:/home/agent/data
+    shm_size: "2gb"  # Increase shared memory for browser
+    cap_add:
+      - SYS_ADMIN  # Required for some browser features
+    security_opt:
+      - seccomp:unconfined  # Required for browser sandboxing
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "xdotool", "getactivewindow"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
