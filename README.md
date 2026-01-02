@@ -46,7 +46,7 @@ A Python-based autonomous computer control agent using Claude's Computer Use API
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/computer-use-agent.git
+git clone https://github.com/objones25/computer-use-agent.git
 cd computer-use-agent
 
 # Install dependencies with uv
