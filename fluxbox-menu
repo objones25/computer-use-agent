@@ -1,0 +1,19 @@
+[begin] (Fluxbox)
+  [submenu] (Browsers)
+    [exec] (Firefox) {firefox}
+  [end]
+  [submenu] (Terminals)
+    [exec] (XTerm) {xterm}
+    [exec] (Bash) {xterm -e bash}
+  [end]
+  [submenu] (System)
+    [exec] (File Manager) {xdg-open .}
+    [exec] (Screenshot) {scrot -d 1}
+  [end]
+  [separator]
+  [config] (Configuration)
+  [workspaces] (Workspaces)
+  [reconfig] (Reconfigure)
+  [restart] (Restart)
+  [exit] (Exit)
+[end]

@@ -44,6 +44,7 @@ RUN apt-get update && apt-get install -y \
 # Create a non-root user for running the browser
 RUN useradd -m -s /bin/bash agent && \
     mkdir -p /home/agent/.config/firefox && \
+    mkdir -p /home/agent/.fluxbox && \
     chown -R agent:agent /home/agent
 
 # Set up working directory
@@ -51,6 +52,9 @@ WORKDIR /home/agent
 
 # Copy startup script with execute permissions
 COPY --chmod=755 docker-entrypoint.sh /usr/local/bin/
+
+# Copy Fluxbox menu configuration
+COPY --chown=agent:agent fluxbox-menu /home/agent/.fluxbox/menu
 
 # Switch to non-root user
 USER agent
