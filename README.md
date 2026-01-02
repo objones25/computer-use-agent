@@ -128,7 +128,8 @@ computer-use-agent/
 │           ├── __init__.py
 │           ├── base.py         # Base tool interface
 │           ├── computer.py     # Computer use tool (screenshot, click, type)
-│           └── bash.py         # Bash command execution
+│           ├── bash.py         # Bash command execution
+│           └── credential.py   # Credential request tool for login flows
 └── tests/
     └── __init__.py
 ```
@@ -187,6 +188,23 @@ Execute shell commands inside the container for tasks like:
 - Opening applications
 - File operations
 - System queries
+
+### Credential Tool
+
+Request credentials from the user during login flows:
+
+| Credential Type | Description |
+|----------------|-------------|
+| `username` | Login ID, email, or nickname |
+| `password` | Password (hidden input, obscured in output) |
+| `2fa` | Two-factor authentication code (obscured in output) |
+| `custom` | Custom input with custom message |
+
+Example usage by Claude:
+```json
+{"credential_type": "username", "service_name": "Cool Math Games"}
+{"credential_type": "password", "service_name": "Cool Math Games"}
+```
 
 ## API Reference
 

@@ -9,7 +9,7 @@ from rich.console import Console
 from .captcha import CaptchaSolver
 from .config import Config, HumanLoopMode
 from .human_loop import HumanLoopHandler
-from .tools import BaseTool, BashTool, ComputerTool, ToolResult
+from .tools import BaseTool, BashTool, ComputerTool, CredentialTool, ToolResult
 
 
 console = Console()
@@ -35,6 +35,9 @@ class ComputerUseAgent:
         # Initialize Anthropic client
         self.client = anthropic.Anthropic(api_key=config.anthropic_api_key)
 
+        # Initialize human-in-the-loop handler (needed by CredentialTool)
+        self.human_handler = HumanLoopHandler(mode=config.human_loop_mode)
+
         # Initialize tools
         self.computer_tool = ComputerTool(
             display_width=config.display_width,
@@ -42,15 +45,17 @@ class ComputerUseAgent:
             docker_container=docker_container,
         )
         self.bash_tool = BashTool(docker_container=docker_container)
-        self.tools: list[BaseTool] = [self.computer_tool, self.bash_tool]
+        self.credential_tool = CredentialTool(human_handler=self.human_handler)
+        self.tools: list[BaseTool] = [
+            self.computer_tool,
+            self.bash_tool,
+            self.credential_tool,
+        ]
 
         # Initialize CAPTCHA solver
         self.captcha_solver: CaptchaSolver | None = None
         if config.capmonster_api_key:
             self.captcha_solver = CaptchaSolver(config.capmonster_api_key)
-
-        # Initialize human-in-the-loop handler
-        self.human_handler = HumanLoopHandler(mode=config.human_loop_mode)
 
         # Conversation history
         self.messages: list[dict[str, Any]] = []
@@ -297,9 +302,17 @@ class ComputerUseAgent:
                     if result.is_error:
                         self.human_handler.show_error(f"Tool error: {result.error}")
                     elif result.output:
-                        console.print(f"[green]Result: {result.output[:100]}...[/green]"
-                                      if len(result.output or "") > 100
-                                      else f"[green]Result: {result.output}[/green]")
+                        # Obscure sensitive credential output for security
+                        is_sensitive = (
+                            tool_name == "credential"
+                            and tool_input.get("credential_type") in ("password", "2fa")
+                        )
+                        display_output = "********" if is_sensitive else result.output
+                        console.print(
+                            f"[green]Result: {display_output[:100]}...[/green]"
+                            if len(display_output or "") > 100
+                            else f"[green]Result: {display_output}[/green]"
+                        )
                     elif result.base64_image:
                         console.print("[green]Screenshot captured[/green]")
 
@@ -333,9 +346,11 @@ class ComputerUseAgent:
 </IMPORTANT>
 
 <CREDENTIALS>
-* When you need credentials (username, password), describe what you need clearly and wait for the user to provide them.
-* Never guess or make up credentials.
-* For 2FA codes, wait for the user to provide them.
+* When you encounter a login form, use the 'credential' tool to request credentials from the user.
+* First request the username: {{"credential_type": "username", "service_name": "Service Name"}}
+* Then request the password: {{"credential_type": "password", "service_name": "Service Name"}}
+* For 2FA codes: {{"credential_type": "2fa", "service_name": "Service Name"}}
+* Never guess or make up credentials. Always use the credential tool to get them from the user.
 </CREDENTIALS>
 
 <CAPTCHA>
